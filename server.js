@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const auth_routes = require('./routes/api/auth/auth_routes');
 

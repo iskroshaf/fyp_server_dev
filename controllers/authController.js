@@ -36,5 +36,33 @@ const googleLogin = async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired ID token' });
   }
 };
-module.exports = { googleLogin };
+
+const userRegister = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
+    if (existingUser) {
+      return res.status(400).json({ error: 'The email address is already in use by another account.' });
+    }
+
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+    });
+
+    const userRef = db.collection('users').doc(userRecord.uid);
+    await userRef.set({
+      email: email,
+      password: password,
+    });
+
+    return res.status(201).json({ message: 'User registered successfully', uid: userRecord.uid });
+  } catch (error) {
+    console.error('Error creating new user:', error);
+    return res.status(500).json({ error: 'Failed to register user' });
+  }
+};
+
+module.exports = { googleLogin, userRegister };
+
 

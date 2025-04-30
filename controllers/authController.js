@@ -3,20 +3,27 @@ const { admin, db } = require('../services/firebase_service');
 
 const googleLogin = async (req, res) => {
   const authHeader = req.headers['authorization'];
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(400).json({ error: 'Authorization header missing or invalid format' });
+  }
+
   const idToken = authHeader.split('Bearer ')[1];
+
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
-    const userRef = db.collection('users').doc(uid);
-    const doc = await userRef.get();
+    const profileRef = db.collection('profiles').doc(uid);
+    const doc = await profileRef.get();
 
     if (!doc.exists) {
-      await userRef.set({
-        uid,
+      await profileRef.set({
+        userId: uid,
         email: decodedToken.email,
-        name: decodedToken.name,
-        picture: decodedToken.picture,
+        username: decodedToken.name,
+        photoURL: decodedToken.picture,
+        role: 1,
         provider: 'google',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -31,29 +38,35 @@ const googleLogin = async (req, res) => {
         picture: decodedToken.picture,
       }
     });
+
   } catch (error) {
     console.error('Error verifying ID token:', error);
     return res.status(401).json({ error: 'Invalid or expired ID token' });
   }
 };
 
+
 const userRegister = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
   try {
     const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingUser) {
       return res.status(400).json({ error: 'The email address is already in use by another account.' });
     }
 
+    // Craete a user in Firebase Authentication
     const userRecord = await admin.auth().createUser({
       email,
       password,
     });
 
-    const userRef = db.collection('users').doc(userRecord.uid);
+    // Creates a document in Firebase database
+    const userRef = db.collection('profiles').doc(userRecord.uid);
     await userRef.set({
+      userId: userRecord.uid,
       email: email,
-      password: password,
+      role: role || 1,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     return res.status(201).json({ message: 'User registered successfully', uid: userRecord.uid });

@@ -1,6 +1,7 @@
 // server.js
 const express = require('express');
-const auth_routes = require('./routes/api/auth/auth_routes');
+const auth_routes = require('./routes/api/auth_routes');
+const user_routes = require('./routes/api/user_routes');
 
 dotenv = require('dotenv');
 
@@ -8,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/api', auth_routes);
-
+app.use('/api', user_routes);
 
 const PORT = process.env.PORT || 3000;
 

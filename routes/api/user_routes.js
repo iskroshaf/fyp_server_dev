@@ -1,9 +1,10 @@
 //  routes/api/user_routes.js
 
 const express = require('express');
-const { userProfile} = require('../../controllers/userController');
+const { getUserProfile, updateUserProfile} = require('../../controllers/userController');
 const router = express.Router();
 
-router.get('/user/profile', userProfile);
+router.get('/user/profile', getUserProfile);
+router.put('/user/profile', updateUserProfile);
 
 module.exports = router;

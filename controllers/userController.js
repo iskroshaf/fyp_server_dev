@@ -1,16 +1,12 @@
 // controllers/userController.js
 
 const { admin, db } = require('../services/firebase_service');
+const { getUserToken } = require('./authController');
 
-const userProfile = async (req, res) => {
+
+const getUserProfile = async (req, res) => {
   try {
-    const authHeader = req.headers['authorization'];
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(400).json({ error: 'Authorization header missing or invalid format' });
-    }
-
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = await getUserToken(req); 
 
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
@@ -29,8 +25,41 @@ const userProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return res.status(500).json({ error: 'Failed to fetch user profile' });
+    return res.status(500).json({ error: error.message || 'Failed to fetch user profile' });
   }
 };
 
-module.exports = { userProfile };
+const updateUserProfile = async(req, res)=>{
+  try {
+    const { name, gender, birthdate, biodata} = req.body;
+
+    const idToken = await getUserToken(req); 
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+
+    const profileRef = db.collection('profiles').doc(uid);
+    const doc = await profileRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    await profileRef.update({
+      name: name || null,
+      gender: gender || null,
+      birthdate : birthdate || null,
+      biodata: biodata || null,
+    });
+
+    return res.status(200).json({
+      message: 'User profile updated successfully',
+    });
+    
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return res.status(500).json({ error: error.message || 'Failed to update user profile' });
+  }
+}
+
+module.exports = { getUserProfile, updateUserProfile };

@@ -1,16 +1,18 @@
 // controllers/authController.js
 const { admin, db } = require('../services/firebase_service');
 
-const googleLogin = async (req, res) => {
+const getUserToken = async (req) => {
   const authHeader = req.headers['authorization'];
-
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(400).json({ error: 'Authorization header missing or invalid format' });
+    throw new Error('Authorization header missing or invalid format');
   }
+  return authHeader.split('Bearer ')[1];
+};
 
-  const idToken = authHeader.split('Bearer ')[1];
-
+const googleLogin = async (req, res) => {
   try {
+    const idToken = await getUserToken(req); 
+
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
@@ -41,14 +43,15 @@ const googleLogin = async (req, res) => {
 
   } catch (error) {
     console.error('Error verifying ID token:', error);
-    return res.status(401).json({ error: 'Invalid or expired ID token' });
+    return res.status(401).json({ error: error.message || 'Invalid or expired ID token' });
   }
 };
 
 
 const userRegister = async (req, res) => {
-  const { email, password, role } = req.body;
   try {
+    const { email, password, role } = req.body;
+
     const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingUser) {
       return res.status(400).json({ error: 'The email address is already in use by another account.' });
@@ -72,10 +75,10 @@ const userRegister = async (req, res) => {
     return res.status(201).json({ message: 'User registered successfully', uid: userRecord.uid });
   } catch (error) {
     console.error('Error creating new user:', error);
-    return res.status(500).json({ error: 'Failed to register user' });
+    return res.status(500).json({ error: error.message || 'Failed to register user' });
   }
 };
 
-module.exports = { googleLogin, userRegister };
+module.exports = { googleLogin, userRegister ,getUserToken};
 
 

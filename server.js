@@ -5,11 +5,15 @@ const user_routes = require('./routes/api/user_routes');
 
 dotenv = require('dotenv');
 
+const path = require('path');
 const app = express();
+
 app.use(express.json());
 
 app.use('/api', auth_routes);
 app.use('/api', user_routes);
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
 
 const PORT = process.env.PORT || 3000;
 

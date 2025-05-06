@@ -1,4 +1,4 @@
-// controllers/authController.js
+// controllers/auth_controller.js
 const { admin, db } = require('../services/firebase_service');
 
 const getUserToken = async (req) => {

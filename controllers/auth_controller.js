@@ -57,13 +57,11 @@ const userRegister = async (req, res) => {
       return res.status(400).json({ error: 'The email address is already in use by another account.' });
     }
 
-    // Craete a user in Firebase Authentication
     const userRecord = await admin.auth().createUser({
       email,
       password,
     });
 
-    // Creates a document in Firebase database
     const userRef = db.collection('profiles').doc(userRecord.uid);
     await userRef.set({
       userId: userRecord.uid,

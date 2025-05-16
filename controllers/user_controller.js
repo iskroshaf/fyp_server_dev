@@ -6,43 +6,82 @@ const { getUserToken } = require('./auth_controller');
 
 const getUserProfile = async (req, res) => {
   try {
-    const idToken = await getUserToken(req); 
-
+    const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
-    const profileRef = db.collection('profiles').doc(uid);
+    const profilesRef = db.collection('profiles');
+    const snapshot = await profilesRef.where('userId', '==', uid).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: 'No profiles found for this user' });
+    }
+
+    const userProfiles = [];
+    snapshot.forEach(doc => {
+      userProfiles.push({ id: doc.id, ...doc.data() });
+    });
+
+    return res.status(200).json({
+      message: 'User profiles fetched successfully',
+      profiles: userProfiles,
+    });
+
+  } catch (error) {
+    console.error('Error fetching user profiles:', error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch user profiles' });
+  }
+};
+
+const getSingleUserProfile = async (req, res) => {
+  try {
+    const idToken = await getUserToken(req);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const { profile_id } = req.params;
+
+    const profileRef = db.collection('profiles').doc(profile_id);
+    const doc = await profileRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const profileData = doc.data();
+    if (profileData.userId !== uid) {
+      return res.status(403).json({ error: 'You do not have permission to access this profile' });
+    }
+
+    return res.status(200).json({
+      message: 'Profile fetched successfully',
+      profile: { id: doc.id, ...profileData },
+    });
+
+  } catch (error) {
+    console.error('Error fetching single user profile:', error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch user profile' });
+  }
+};
+
+
+const updateUserProfile = async(req, res)=>{
+  try {
+    const idToken = await getUserToken(req);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const { profile_id } = req.params;
+    const { name, gender, birthdate, biodata} = req.body;
+
+    const profileRef = db.collection('profiles').doc(profile_id);
     const doc = await profileRef.get();
 
     if (!doc.exists) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
-    return res.status(200).json({
-      message: 'User profile fetched successfully',
-      userProfile: doc.data(),
-    });
-
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return res.status(500).json({ error: error.message || 'Failed to fetch user profile' });
-  }
-};
-
-const updateUserProfile = async(req, res)=>{
-  try {
-    const { name, gender, birthdate, biodata} = req.body;
-
-    const idToken = await getUserToken(req); 
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
-
-
-    const profileRef = db.collection('profiles').doc(uid);
-    const doc = await profileRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ error: 'User profile not found' });
+        const profileData = doc.data();
+    if (profileData.userId !== uid) {
+      return res.status(403).json({ error: 'You do not have permission to access this profile' });
     }
 
     await profileRef.update({
@@ -57,9 +96,38 @@ const updateUserProfile = async(req, res)=>{
     });
     
   } catch (error) {
-    console.error('Error updating user profile:', error);
     return res.status(500).json({ error: error.message || 'Failed to update user profile' });
   }
 }
 
-module.exports = { getUserProfile, updateUserProfile };
+const addUserProfile = async (req, res) => {
+  try {
+    const { name, gender, birthdate } = req.body;
+    const idToken = await getUserToken(req);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const email = decodedToken.email;
+
+    const profilesRef = db.collection('profiles');
+    const newProfileRef = await profilesRef.add({
+      userId: uid,
+      name: name,
+      gender: gender,
+      birthdate: birthdate,
+      email: email,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(200).json({
+      message: 'New user profile created successfully',
+      profileId: newProfileRef.id,
+    });
+
+  } catch (error) {
+    console.error('Error adding user profile:', error);
+    return res.status(500).json({ error: error.message || 'Failed to add user profile' });
+  }
+};
+
+
+module.exports = { getUserProfile, updateUserProfile, addUserProfile, getSingleUserProfile };

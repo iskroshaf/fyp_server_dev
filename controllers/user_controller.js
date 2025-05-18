@@ -79,7 +79,7 @@ const updateUserProfile = async(req, res)=>{
       return res.status(404).json({ error: 'User profile not found' });
     }
 
-        const profileData = doc.data();
+    const profileData = doc.data();
     if (profileData.userId !== uid) {
       return res.status(403).json({ error: 'You do not have permission to access this profile' });
     }
@@ -129,5 +129,40 @@ const addUserProfile = async (req, res) => {
   }
 };
 
+const updateProfileLocation = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    const idToken = await getUserToken(req);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const { profile_id } = req.params;
 
-module.exports = { getUserProfile, updateUserProfile, addUserProfile, getSingleUserProfile };
+    const profileRef = db.collection('profiles').doc(profile_id);
+    const doc = await profileRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const profileData = doc.data();
+    if (profileData.userId !== uid) {
+      return res.status(403).json({ error: 'No permission to update this profile' });
+    }
+
+    await profileRef.update({
+      latitude: latitude || null,
+      longitude: longitude || null,
+    });
+
+    return res.status(200).json({
+      message: 'User location updated successfully',
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message || 'Failed to update location' });
+  }
+};
+
+
+
+module.exports = { getUserProfile, updateUserProfile, addUserProfile, getSingleUserProfile, updateProfileLocation};

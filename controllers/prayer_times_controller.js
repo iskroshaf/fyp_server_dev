@@ -20,7 +20,6 @@ const addPrayerTimes = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized access to this profile' });
     }
 
-    // Check if prayer times doc already exists for this profile
     const existingPrayerTimesSnapshot = await db.collection('prayer_times')
       .where('profileId', '==', profile_id)
       .limit(1)

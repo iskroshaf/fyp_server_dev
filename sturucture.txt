@@ -1,0 +1,52 @@
+users (collection)
+  └── {uid} (doc)
+        ├── email: string
+        ├── name: string
+        ├── photoURL: string
+        ├── role: number
+        ├── createdAt: timestamp
+        └── updatedAt: timestamp
+
+profiles (collection)
+  └── {profileId} (doc)
+        ├── userId: string      
+        ├── email: string      
+        ├── name: string        
+        ├── gender: string     
+        ├── birthdate: timestamp
+        ├── biodata: string     
+        ├── role: number        
+        ├── provider: string 
+        ├── photoURL: string
+        ├── latitude: number        
+        ├── longitude: number       
+        ├── createdAt: timestamp
+        └── updatedAt: timestamp
+
+prayer_sessions (collection)
+  └── {sessionId} (doc)
+        ├── sessionId: string    
+        ├── profileId: string      
+        ├── prayerTimesId: string  
+        ├── prayerName: string
+        ├── currentRakaat: number  
+        ├── status: boolean        
+        ├── createdAt: timestamp
+        ├── day: int
+        └── lastUpdated: timestamp
+
+prayer_times (collection)
+  └── {prayerTimesId} (doc)
+        ├── profileId: string      
+        ├── month: number         
+        ├── year: number           
+        ├── zone: string           
+        ├── prayers: {             
+              "1": { fajr: 1746049920, dhuhr: 1746076260, asr: 1746088140, maghrib: 1746098160, isha: 1746102420, syuruk: 1746054180, hijri: "1446-11-03", day: 1 },
+              "2": { fajr: "...", ... },
+              ...
+              "30": { fajr: "...", ... }
+          }
+        ├── createdAt: timestamp    
+        ├── updatedAt: timestamp   
+        └── last_updated: timestamp 

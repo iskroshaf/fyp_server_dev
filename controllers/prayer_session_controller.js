@@ -10,10 +10,10 @@ const startPrayerSession = async (req, res) => {
     const uid = decodedToken.uid;
 
     const { profile_id } = req.params;
-    let { prayerName } = req.body;
+    let { prayerName, day } = req.body;
 
-    if (!prayerName) {
-      return res.status(400).json({ error: 'prayerName is required' });
+    if (!prayerName || !day) {
+      return res.status(400).json({ error: 'prayerName or day is required' });
     }
 
     prayerName = prayerName.toLowerCase();  
@@ -45,18 +45,29 @@ const startPrayerSession = async (req, res) => {
       .get();
 
     for (const doc of existingSessionsSnapshot.docs) {
-      if (doc.data().prayerName.toLowerCase() === prayerName) {
+      const session = doc.data();
+      if (session.prayerName.toLowerCase() === prayerName && session.day === day) {
+        await db.collection('prayer_sessions').doc(doc.id).update({
+          currentRakaat: 1,
+          status: false,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(), 
+        });
+
         return res.status(200).json({
-          message: 'Prayer session already exists',
+          message: 'Prayer session restarted',
           sessionId: doc.id,
         });
       }
     }
 
-    const sessionId = `session_${new Date().toISOString().split('T')[0]}_${prayerName}_${uid.slice(0, 6)}`;
+    const now = new Date();
+    const monthStr = (now.getMonth() + 1).toString().padStart(2, '0');
+    const sessionId = `session_${day}_${monthStr}_${prayerName}_${uid.slice(0, 6)}`;
 
     await db.collection('prayer_sessions').doc(sessionId).set({
       sessionId,
+      day,
       prayerTimesId,
       profileId: profile_id,
       prayerName,
@@ -80,7 +91,7 @@ const startPrayerSession = async (req, res) => {
 
 const updatePrayerSession = async (req, res) => {
   try {
-    const { sessionId, currentRakaat, timestamp } = req.body;
+    const { sessionId, currentRakaat, timestamp, status } = req.body;
 
     const sessionRef = db.collection('prayer_sessions').doc(sessionId);
     const sessionDoc = await sessionRef.get();
@@ -89,29 +100,12 @@ const updatePrayerSession = async (req, res) => {
       return res.status(404).json({ error: 'Prayer session not found' });
     }
 
-    const sessionData = sessionDoc.data();
-
-    const maxRakaatMap = {
-      fajr: 2,
-      dhuhr: 4,
-      asr: 4,
-      maghrib: 3,
-      isya: 4,
-    };
-
-    const prayerNameLower = sessionData.prayerName.toLowerCase();
-    const maxRakaat = maxRakaatMap[prayerNameLower] || 4;
-
-    const status = currentRakaat >= maxRakaat;
-
-  const adminTimestamp = admin.firestore.Timestamp.fromDate(new Date(timestamp));
-  await sessionRef.update({
-    currentRakaat,
-    status,
-    lastUpdated: adminTimestamp,
-  });
-
-
+    const adminTimestamp = admin.firestore.Timestamp.fromDate(new Date(timestamp));
+    await sessionRef.update({
+      currentRakaat,
+      status,
+      lastUpdated: adminTimestamp,
+    });
     return res.status(200).json({ message: 'Prayer session updated from ESP32' });
   } catch (error) {
     console.error('ESP update error:', error);
@@ -119,6 +113,37 @@ const updatePrayerSession = async (req, res) => {
   }
 };
 
+const loadSinglePrayerSession = async (req, res) => {
+  try {
+    const idToken = await getUserToken(req);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const { profile_id } = req.params;
+    const profileDoc = await db.collection('profiles').doc(profile_id).get();
+    
+    if (!profileDoc.exists) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    if (profileDoc.data().userId !== uid) {
+      return res.status(403).json({ error: 'Unauthorized access to this profile' });
+    }
 
-module.exports = { startPrayerSession,updatePrayerSession };
+    const sessionsSnapshot = await db.collection('prayer_sessions')
+      .where('profileId', '==', profile_id)
+      .get();
+
+    const sessions = [];
+    sessionsSnapshot.forEach(doc => {
+      sessions.push({ id: doc.id, ...doc.data() });
+    });
+
+    return res.status(200).json({ sessions });
+  } catch (error) {
+    console.error('Error load prayer session:', error);
+    return res.status(500).json({ error: error.message || 'Failed to load prayer session' });
+  }
+};
+
+
+module.exports = { startPrayerSession,updatePrayerSession, loadSinglePrayerSession };
 

@@ -2,17 +2,17 @@
 
 const express = require('express');
 const {
-  getUserProfile,
+  readUserProfile,
   updateUserProfile,
   addUserProfile,
-  getSingleUserProfile,
+  readSingleUserProfile,
   updateProfileLocation
 } = require('../../controllers/user_controller');
 
 const router = express.Router();
 
-router.get('/user/profile', getUserProfile);
-router.get('/user/:profile_id/profile', getSingleUserProfile);
+router.get('/user/profile', readUserProfile);
+router.get('/user/:profile_id/profile', readSingleUserProfile);
 router.put('/user/:profile_id/profile', updateUserProfile);
 router.post('/user/profile', addUserProfile);
 router.patch('/user/:profile_id/location', updateProfileLocation);

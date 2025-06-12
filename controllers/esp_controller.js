@@ -25,7 +25,7 @@ const reportEspStatus = async (req, res) => {
   }
 };
 
-const getEspStatus = async (req, res) => {
+const readEspStatus = async (req, res) => {
   try {
     const { espId } = req.params;
 
@@ -65,4 +65,4 @@ const checkEspConnections = async () => {
 };
 
 
-module.exports = { reportEspStatus, getEspStatus, checkEspConnections };
+module.exports = { reportEspStatus, readEspStatus, checkEspConnections };

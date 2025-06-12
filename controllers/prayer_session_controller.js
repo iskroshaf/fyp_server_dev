@@ -102,8 +102,8 @@ const updatePrayerSession = async (req, res) => {
 
     const adminTimestamp = admin.firestore.Timestamp.fromDate(new Date(timestamp));
     await sessionRef.update({
-      currentRakaat,
-      status,
+      currentRakaat : currentRakaat || 1,
+      status : status || false,
       lastUpdated: adminTimestamp,
     });
     return res.status(200).json({ message: 'Prayer session updated from ESP32' });
@@ -113,10 +113,12 @@ const updatePrayerSession = async (req, res) => {
   }
 };
 
-const loadSinglePrayerSession = async (req, res) => {
+
+const readSinglePrayerSession = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
+    
     const uid = decodedToken.uid;
     const { profile_id } = req.params;
     const profileDoc = await db.collection('profiles').doc(profile_id).get();
@@ -145,5 +147,5 @@ const loadSinglePrayerSession = async (req, res) => {
 };
 
 
-module.exports = { startPrayerSession,updatePrayerSession, loadSinglePrayerSession };
+module.exports = { startPrayerSession,updatePrayerSession, readSinglePrayerSession };
 

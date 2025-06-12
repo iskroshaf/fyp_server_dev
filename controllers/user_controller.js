@@ -3,8 +3,7 @@
 const { admin, db } = require('../services/firebase_service');
 const { getUserToken } = require('./auth_controller');
 
-
-const getUserProfile = async (req, res) => {
+const readUserProfile = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -29,11 +28,11 @@ const getUserProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching user profiles:', error);
-    return res.status(500).json({ error: error.message || 'Failed to fetch user profiles' });
+    return res.status(500).json({ error: 'Failed to fetch user profiles' });
   }
 };
 
-const getSingleUserProfile = async (req, res) => {
+const readSingleUserProfile = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -59,7 +58,7 @@ const getSingleUserProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching single user profile:', error);
-    return res.status(500).json({ error: error.message || 'Failed to fetch user profile' });
+    return res.status(500).json({ error: 'Failed to fetch user profile' });
   }
 };
 
@@ -96,7 +95,8 @@ const updateUserProfile = async(req, res)=>{
     });
     
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Failed to update user profile' });
+    console.error('Error update user profile:', error);
+    return res.status(500).json({ error: 'Failed to update user profile' });
   }
 }
 
@@ -125,7 +125,7 @@ const addUserProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Error adding user profile:', error);
-    return res.status(500).json({ error: error.message || 'Failed to add user profile' });
+    return res.status(500).json({ error: 'Failed to add user profile' });
   }
 };
 
@@ -159,10 +159,11 @@ const updateProfileLocation = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Failed to update location' });
+    console.error('Error update location:', error);
+    return res.status(500).json({ error: 'Failed to update location' });
   }
 };
 
 
 
-module.exports = { getUserProfile, updateUserProfile, addUserProfile, getSingleUserProfile, updateProfileLocation};
+module.exports = { readUserProfile, updateUserProfile, addUserProfile, readSingleUserProfile, updateProfileLocation};

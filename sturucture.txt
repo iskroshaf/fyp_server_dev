@@ -1,3 +1,5 @@
+// firestore_database_structure.txt
+
 users (collection)
   └── {uid} (doc)
         ├── email: string
@@ -38,7 +40,7 @@ prayer_sessions (collection)
 prayer_times (collection)
   └── {prayerTimesId} (doc)
         ├── profileId: string      
-        ├── month: number         
+        ├── month: string         
         ├── year: number           
         ├── zone: string           
         ├── prayers: {             
@@ -50,3 +52,12 @@ prayer_times (collection)
         ├── createdAt: timestamp    
         ├── updatedAt: timestamp   
         └── last_updated: timestamp 
+
+verse_notes (collection)
+  └── {verseNoteId} (doc)
+        ├── chapter: int  
+        ├── verse: int  
+        ├── note: string      
+        ├── profileId: string   
+        ├── createdAt: timestamp
+        └── updatedAt: timestamp

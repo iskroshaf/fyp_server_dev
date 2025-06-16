@@ -92,7 +92,7 @@ const updateVerseNote = async (req, res) => {
   }
 }
 
-const readVerseNotes = async (req, res) => {
+const getVerseNotes = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -162,4 +162,4 @@ const deleteVerseNote = async (req, res) => {
   }
 }
 
-module.exports = { addVerseNote, readVerseNotes, updateVerseNote, deleteVerseNote };
+module.exports = { addVerseNote, getVerseNotes, updateVerseNote, deleteVerseNote };

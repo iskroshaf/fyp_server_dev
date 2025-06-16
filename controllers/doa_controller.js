@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const readDoa = async (req, res) => {
+const getDoa = async (req, res) => {
   try {
     const doaDataPath = path.join(__dirname, '..', 'assets', 'data', 'doa.json');
 
@@ -18,4 +18,4 @@ const readDoa = async (req, res) => {
   }
 };
 
-module.exports = { readDoa };
+module.exports = { getDoa };

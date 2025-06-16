@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const readQuran = async (req, res) => {
+const getQuran = async (req, res) => {
   try {
     const quranDataPath = path.join(__dirname, '..', 'assets', 'data', 'quran.json');
 
@@ -18,4 +18,4 @@ const readQuran = async (req, res) => {
   }
 };
 
-module.exports = { readQuran };
+module.exports = { getQuran };

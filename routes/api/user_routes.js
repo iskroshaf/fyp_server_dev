@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get('/user/profile', readUserProfile);
 router.get('/user/:profile_id/profile', readSingleUserProfile);
-router.put('/user/:profile_id/profile', updateUserProfile);
+router.patch('/user/:profile_id/profile', updateUserProfile);
 router.post('/user/profile', addUserProfile);
 router.patch('/user/:profile_id/location', updateProfileLocation);
 

@@ -1,4 +1,4 @@
-// prayer_controller.js
+// controllers/prayer_controller.js
 
 const { admin, db } = require('../services/firebase_service');
 const { getUserToken } = require('./auth_controller');

@@ -61,3 +61,19 @@ verse_notes (collection)
         ├── profileId: string   
         ├── createdAt: timestamp
         └── updatedAt: timestamp
+
+points (collection)
+  └── {pointsId} (doc)
+        ├── profileId: int  
+        ├── profileId: string   
+        └── createdAt: timestamp
+
+
+
+// realtime_database_sturucture
+
+esp
+  └── {espId}
+        ├── ip: string  
+        ├── isConnected: false   
+        └── lastSeen: timestamp

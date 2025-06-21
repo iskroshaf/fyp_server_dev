@@ -11,6 +11,9 @@ const quran_routes = require('./routes/api/quran_routes');
 const doa_routes = require('./routes/api/doa_routes');
 const prayer_routes = require('./routes/api/prayer_routes');
 const verse_notes_routes = require('./routes/api/verse_notes_routes');
+const point_routes = require('./routes/api/point_routes');
+const chat_routes = require('./routes/api/chat_routes');
+
 const esp = require('./routes/api/esp_routes');
 
 const { checkEspConnections } = require('./controllers/esp_controller');
@@ -26,6 +29,9 @@ app.use('/api', quran_routes);
 app.use('/api', doa_routes);
 app.use('/api', prayer_routes);
 app.use('/api', verse_notes_routes);
+app.use('/api', point_routes);
+app.use('/api', chat_routes);
+
 app.use('/api', esp);
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 

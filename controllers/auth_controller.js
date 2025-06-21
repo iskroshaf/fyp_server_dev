@@ -50,11 +50,23 @@ const googleLogin = async (req, res) => {
 
 const userRegister = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { username, email, password } = req.body;
+
+    if (!email || !password || !username) {
+      return res.status(400).json({ error: 'Email, password, and username are required.' });
+    }
 
     const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingUser) {
       return res.status(400).json({ error: 'The email address is already in use by another account.' });
+    }
+
+    const usernameSnapshot = await db.collection('profiles')
+      .where('username', '==', username)
+      .get();
+
+      if (!usernameSnapshot.empty) {
+      return res.status(400).json({ error: 'Username is already taken' });
     }
 
     const userRecord = await admin.auth().createUser({
@@ -66,7 +78,8 @@ const userRegister = async (req, res) => {
     await userRef.set({
       userId: userRecord.uid,
       email: email,
-      role: role || 1,
+      username : username,
+      role: 1,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 

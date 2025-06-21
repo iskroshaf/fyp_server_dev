@@ -3,7 +3,7 @@
 const { admin, db } = require('../services/firebase_service');
 const { getUserToken } = require('./auth_controller');
 
-const readUserProfile = async (req, res) => {
+const getUserProfile = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -32,7 +32,7 @@ const readUserProfile = async (req, res) => {
   }
 };
 
-const readSingleUserProfile = async (req, res) => {
+const getSingleUserProfile = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -69,7 +69,7 @@ const updateUserProfile = async(req, res)=>{
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
     const { profile_id } = req.params;
-    const { name, gender, birthdate, biodata} = req.body;
+    const { username, gender, birthdate, biodata} = req.body;
 
     const profileRef = db.collection('profiles').doc(profile_id);
     const doc = await profileRef.get();
@@ -84,7 +84,7 @@ const updateUserProfile = async(req, res)=>{
     }
 
     await profileRef.update({
-      name: name || null,
+      username: username || null,
       gender: gender || null,
       birthdate : birthdate || null,
       biodata: biodata || null,
@@ -102,7 +102,7 @@ const updateUserProfile = async(req, res)=>{
 
 const addUserProfile = async (req, res) => {
   try {
-    const { name, gender, birthdate } = req.body;
+    const { username, gender, birthdate } = req.body;
     const idToken = await getUserToken(req);
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
@@ -111,7 +111,7 @@ const addUserProfile = async (req, res) => {
     const profilesRef = db.collection('profiles');
     const newProfileRef = await profilesRef.add({
       userId: uid,
-      name: name,
+      username: username,
       gender: gender,
       birthdate: birthdate,
       email: email,
@@ -166,4 +166,4 @@ const updateProfileLocation = async (req, res) => {
 
 
 
-module.exports = { readUserProfile, updateUserProfile, addUserProfile, readSingleUserProfile, updateProfileLocation};
+module.exports = { getUserProfile, updateUserProfile, addUserProfile, getSingleUserProfile, updateProfileLocation};

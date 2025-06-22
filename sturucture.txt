@@ -68,6 +68,17 @@ points (collection)
         ├── profileId: string   
         └── createdAt: timestamp
 
+chats (collection)
+  └── {chatId} (doc) // e.g., generated as: userId1_userId2
+        ├── participants: array of string // [userId1, userId2]
+        ├── lastMessage: string // text of last message
+        ├── lastSentAt: timestamp // when the last message was sent
+        └── messages (subcollection)
+              └── {messageId} (doc)
+                    ├── senderId: string
+                    ├── text: string
+                    ├── sentAt: timestamp
+                    ├── read: boolean (optional)
 
 
 // realtime_database_sturucture

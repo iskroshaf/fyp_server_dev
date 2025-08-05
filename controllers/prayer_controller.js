@@ -16,7 +16,7 @@ const startPrayerSession = async (req, res) => {
       return res.status(400).json({ error: 'prayerName or day is required' });
     }
 
-    prayerName = prayerName.toLowerCase();  
+    prayerName = prayerName.toLowerCase();
 
     const profileRef = db.collection('profiles').doc(profile_id);
     const profileDoc = await profileRef.get();
@@ -40,32 +40,31 @@ const startPrayerSession = async (req, res) => {
 
     const prayerTimesId = prayerTimesSnapshot.docs[0].id;
 
-    const existingSessionsSnapshot = await db.collection('prayer_sessions')
-      .where('profileId', '==', profile_id)
-      .get();
-
-    for (const doc of existingSessionsSnapshot.docs) {
-      const session = doc.data();
-      if (session.prayerName.toLowerCase() === prayerName && session.day === day) {
-        await db.collection('prayer_sessions').doc(doc.id).update({
-          currentRakaat: 1,
-          status: false,
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-          createdAt: admin.firestore.FieldValue.serverTimestamp(), 
-        });
-
-        return res.status(200).json({
-          message: 'Prayer session restarted',
-          sessionId: doc.id,
-        });
-      }
-    }
-
     const now = new Date();
     const monthStr = (now.getMonth() + 1).toString().padStart(2, '0');
-    const sessionId = `session_${day}_${monthStr}_${prayerName}_${uid.slice(0, 6)}`;
 
-    await db.collection('prayer_sessions').doc(sessionId).set({
+    // ✅ sessionId includes profile_id to ensure uniqueness per child
+    const sessionId = `session_${day}_${monthStr}_${prayerName}_${profile_id.slice(0, 6)}`;
+
+    const sessionRef = db.collection('prayer_sessions').doc(sessionId);
+    const existingSession = await sessionRef.get();
+
+    if (existingSession.exists) {
+      // Session exists, restart it
+      await sessionRef.update({
+        currentRakaat: 1,
+        status: false,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      return res.status(200).json({
+        message: 'Prayer session restarted',
+        sessionId,
+      });
+    }
+
+    // Create new session
+    await sessionRef.set({
       day,
       prayerTimesId,
       profileId: profile_id,
@@ -138,10 +137,6 @@ const updatePrayerSession = async (req, res) => {
   }
 };
 
-
-
-
-
 const getSinglePrayerSession = async (req, res) => {
   try {
     const idToken = await getUserToken(req);
@@ -173,6 +168,7 @@ const getSinglePrayerSession = async (req, res) => {
     return res.status(500).json({ error: error.message || 'Failed to load prayer session' });
   }
 };
+
 
 
 const addPrayerTimes = async (req, res) => {
